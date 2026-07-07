@@ -1,0 +1,1642 @@
+-- Leliks Rivals Script v1.1.6
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Load saved keybinds and settings
+local SavedSettings = {
+    Keybinds = {
+        Fly = Enum.KeyCode.F,
+        ESP = Enum.KeyCode.E,
+        Aimbot = Enum.KeyCode.L,
+        NoClip = Enum.KeyCode.N,
+        AutoShot = Enum.KeyCode.U
+    },
+    FOV = 70
+}
+
+-- Try to load saved settings
+pcall(function()
+    if readfile and isfile and isfile("LeliksRivalsSettings.json") then
+        local loaded = game:GetService("HttpService"):JSONDecode(readfile("LeliksRivalsSettings.json"))
+        if loaded.Keybinds then
+            SavedSettings.Keybinds.Fly = Enum.KeyCode[loaded.Keybinds.Fly]
+            SavedSettings.Keybinds.ESP = Enum.KeyCode[loaded.Keybinds.ESP]
+            SavedSettings.Keybinds.Aimbot = Enum.KeyCode[loaded.Keybinds.Aimbot]
+            SavedSettings.Keybinds.NoClip = Enum.KeyCode[loaded.Keybinds.NoClip]
+            SavedSettings.Keybinds.AutoShot = Enum.KeyCode[loaded.Keybinds.AutoShot] or Enum.KeyCode.U
+        end
+        if loaded.FOV then
+            SavedSettings.FOV = loaded.FOV
+        end
+    end
+end)
+
+-- Save settings function
+local function SaveSettings()
+    pcall(function()
+        if writefile then
+            local saveData = {
+                Keybinds = {
+                    Fly = tostring(SavedSettings.Keybinds.Fly):gsub("Enum.KeyCode.", ""),
+                    ESP = tostring(SavedSettings.Keybinds.ESP):gsub("Enum.KeyCode.", ""),
+                    Aimbot = tostring(SavedSettings.Keybinds.Aimbot):gsub("Enum.KeyCode.", ""),
+                    NoClip = tostring(SavedSettings.Keybinds.NoClip):gsub("Enum.KeyCode.", ""),
+                    AutoShot = tostring(SavedSettings.Keybinds.AutoShot):gsub("Enum.KeyCode.", "")
+                },
+                FOV = SavedSettings.FOV
+            }
+            writefile("LeliksRivalsSettings.json", game:GetService("HttpService"):JSONEncode(saveData))
+        end
+    end)
+end
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke")
+local TitleLabel = Instance.new("TextLabel")
+local VersionLabel = Instance.new("TextLabel")
+local KeybindLabel = Instance.new("TextLabel")
+
+-- Sidebar
+local Sidebar = Instance.new("Frame")
+local SidebarCorner = Instance.new("UICorner")
+local SidebarList = Instance.new("UIListLayout")
+
+-- Content Frame
+local ContentFrame = Instance.new("Frame")
+local ContentCorner = Instance.new("UICorner")
+
+-- ScreenGui Settings
+ScreenGui.Name = "LeliksRivalsGUI"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+-- Main Frame
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -400, 0.5, -225)
+MainFrame.Size = UDim2.new(0, 800, 0, 450)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Visible = true
+
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Blue Border Stroke
+UIStroke.Color = Color3.fromRGB(70, 130, 255)
+UIStroke.Thickness = 3
+UIStroke.Parent = MainFrame
+
+-- Title
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 0, 0, 10)
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "Leliks Rivals Script"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 26
+
+-- Version Label (Bottom Left)
+VersionLabel.Name = "VersionLabel"
+VersionLabel.Parent = MainFrame
+VersionLabel.BackgroundTransparency = 1
+VersionLabel.Position = UDim2.new(0, 10, 1, -30)
+VersionLabel.Size = UDim2.new(0, 70, 0, 20)
+VersionLabel.Font = Enum.Font.GothamBold
+VersionLabel.Text = "v1.1.6"
+VersionLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
+VersionLabel.TextSize = 14
+VersionLabel.TextTransparency = 0.3
+VersionLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Keybind Info Label (Bottom Right)
+KeybindLabel.Name = "KeybindLabel"
+KeybindLabel.Parent = MainFrame
+KeybindLabel.BackgroundTransparency = 1
+KeybindLabel.Position = UDim2.new(1, -220, 1, -30)
+KeybindLabel.Size = UDim2.new(0, 210, 0, 20)
+KeybindLabel.Font = Enum.Font.GothamBold
+KeybindLabel.Text = 'Can Open/Close with "Z"'
+KeybindLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
+KeybindLabel.TextSize = 14
+KeybindLabel.TextTransparency = 0.3
+KeybindLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+-- Sidebar
+Sidebar.Name = "Sidebar"
+Sidebar.Parent = MainFrame
+Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Sidebar.Position = UDim2.new(0, 10, 0, 60)
+Sidebar.Size = UDim2.new(0, 180, 1, -100)
+Sidebar.BorderSizePixel = 0
+
+SidebarCorner.CornerRadius = UDim.new(0, 10)
+SidebarCorner.Parent = Sidebar
+
+SidebarList.Parent = Sidebar
+SidebarList.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarList.Padding = UDim.new(0, 8)
+SidebarList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- Content Frame
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+ContentFrame.Position = UDim2.new(0, 200, 0, 60)
+ContentFrame.Size = UDim2.new(1, -230, 1, -100)
+ContentFrame.BorderSizePixel = 0
+
+ContentCorner.CornerRadius = UDim.new(0, 10)
+ContentCorner.Parent = ContentFrame
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+local CloseCorner = Instance.new("UICorner")
+
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = MainFrame
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.Position = UDim2.new(1, -45, 0, 15)
+CloseButton.Size = UDim2.new(0, 35, 0, 35)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 20
+CloseButton.BorderSizePixel = 0
+
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+-- Tab Button Creation Function
+local currentTab = nil
+
+local function CreateTabButton(name, text, order)
+    local Button = Instance.new("TextButton")
+    local ButtonCorner = Instance.new("UICorner")
+    
+    Button.Name = name
+    Button.Parent = Sidebar
+    Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Button.Size = UDim2.new(0, 160, 0, 45)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Button.TextSize = 16
+    Button.AutoButtonColor = false
+    Button.BorderSizePixel = 0
+    Button.LayoutOrder = order
+    
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+    
+    Button.MouseEnter:Connect(function()
+        if currentTab ~= name then
+            Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        end
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        if currentTab ~= name then
+            Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        end
+    end)
+    
+    return Button
+end
+
+-- Keybind Selector Creation Function
+local currentlyBinding = nil
+
+local function CreateKeybindButton(parent, featureName, currentKey)
+    local KeybindButton = Instance.new("TextButton")
+    local KeybindCorner = Instance.new("UICorner")
+    
+    KeybindButton.Name = featureName .. "Keybind"
+    KeybindButton.Parent = parent
+    KeybindButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    KeybindButton.Position = UDim2.new(1, -65, 0, 5)
+    KeybindButton.Size = UDim2.new(0, 60, 0, 35)
+    KeybindButton.Font = Enum.Font.GothamBold
+    KeybindButton.Text = tostring(currentKey):gsub("Enum.KeyCode.", "")
+    KeybindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeybindButton.TextSize = 12
+    KeybindButton.BorderSizePixel = 0
+    KeybindButton.ZIndex = 2
+    
+    KeybindCorner.CornerRadius = UDim.new(0, 6)
+    KeybindCorner.Parent = KeybindButton
+    
+    KeybindButton.MouseButton1Click:Connect(function()
+        if currentlyBinding then return end
+        
+        currentlyBinding = featureName
+        KeybindButton.Text = "..."
+        KeybindButton.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+        
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                local key = input.KeyCode
+                
+                if key ~= Enum.KeyCode.Unknown then
+                    SavedSettings.Keybinds[featureName] = key
+                    KeybindButton.Text = tostring(key):gsub("Enum.KeyCode.", "")
+                    KeybindButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                    SaveSettings()
+                    currentlyBinding = nil
+                    connection:Disconnect()
+                end
+            end
+        end)
+    end)
+    
+    return KeybindButton
+end
+
+-- Feature Button Creation Function
+local function CreateFeatureButton(parent, name, text, callback, hasKeybind, subtitle)
+    local Button = Instance.new("TextButton")
+    local ButtonCorner = Instance.new("UICorner")
+    local ButtonStroke = Instance.new("UIStroke")
+    
+    Button.Name = name
+    Button.Parent = parent
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.Size = UDim2.new(1, 0, 0, 45)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = ""
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 16
+    Button.AutoButtonColor = false
+    Button.BorderSizePixel = 0
+    
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+    
+    ButtonStroke.Color = Color3.fromRGB(70, 130, 255)
+    ButtonStroke.Thickness = 2
+    ButtonStroke.Parent = Button
+    
+    -- Main Text Label
+    local MainText = Instance.new("TextLabel")
+    MainText.Name = "MainText"
+    MainText.Parent = Button
+    MainText.BackgroundTransparency = 1
+    MainText.Position = UDim2.new(0, 10, 0, subtitle and 5 or 0)
+    MainText.Size = UDim2.new(1, -80, 0, subtitle and 20 or 45)
+    MainText.Font = Enum.Font.GothamBold
+    MainText.Text = text
+    MainText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MainText.TextSize = 16
+    MainText.TextXAlignment = Enum.TextXAlignment.Left
+    MainText.TextYAlignment = subtitle and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center
+    
+    -- Subtitle (if provided)
+    if subtitle then
+        local SubText = Instance.new("TextLabel")
+        SubText.Name = "SubText"
+        SubText.Parent = Button
+        SubText.BackgroundTransparency = 1
+        SubText.Position = UDim2.new(0, 10, 0, 25)
+        SubText.Size = UDim2.new(1, -80, 0, 15)
+        SubText.Font = Enum.Font.Gotham
+        SubText.Text = subtitle
+        SubText.TextColor3 = Color3.fromRGB(120, 120, 120)
+        SubText.TextSize = 11
+        SubText.TextTransparency = 0.3
+        SubText.TextXAlignment = Enum.TextXAlignment.Left
+    end
+    
+    Button.MouseEnter:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end)
+    
+    Button.MouseButton1Click:Connect(callback)
+    
+    if hasKeybind then
+        local keybindName = name:gsub("Button", "")
+        CreateKeybindButton(Button, keybindName, SavedSettings.Keybinds[keybindName])
+    end
+    
+    return Button
+end
+
+-- Create Tab Frames
+local UpdatesFrame = Instance.new("ScrollingFrame")
+UpdatesFrame.Name = "UpdatesFrame"
+UpdatesFrame.Parent = ContentFrame
+UpdatesFrame.BackgroundTransparency = 1
+UpdatesFrame.Position = UDim2.new(0, 10, 0, 10)
+UpdatesFrame.Size = UDim2.new(1, -20, 1, -20)
+UpdatesFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+UpdatesFrame.ScrollBarThickness = 6
+UpdatesFrame.ScrollBarImageColor3 = Color3.fromRGB(70, 130, 255)
+UpdatesFrame.BorderSizePixel = 0
+UpdatesFrame.Visible = false
+
+local FeaturesFrame = Instance.new("ScrollingFrame")
+FeaturesFrame.Name = "FeaturesFrame"
+FeaturesFrame.Parent = ContentFrame
+FeaturesFrame.BackgroundTransparency = 1
+FeaturesFrame.Position = UDim2.new(0, 10, 0, 10)
+FeaturesFrame.Size = UDim2.new(1, -20, 1, -20)
+FeaturesFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+FeaturesFrame.ScrollBarThickness = 6
+FeaturesFrame.ScrollBarImageColor3 = Color3.fromRGB(70, 130, 255)
+FeaturesFrame.BorderSizePixel = 0
+FeaturesFrame.Visible = false
+
+local InfoFrame = Instance.new("ScrollingFrame")
+InfoFrame.Name = "InfoFrame"
+InfoFrame.Parent = ContentFrame
+InfoFrame.BackgroundTransparency = 1
+InfoFrame.Position = UDim2.new(0, 10, 0, 10)
+InfoFrame.Size = UDim2.new(1, -20, 1, -20)
+InfoFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+InfoFrame.ScrollBarThickness = 6
+InfoFrame.ScrollBarImageColor3 = Color3.fromRGB(70, 130, 255)
+InfoFrame.BorderSizePixel = 0
+InfoFrame.Visible = false
+
+local UpdatesList = Instance.new("UIListLayout")
+UpdatesList.Parent = UpdatesFrame
+UpdatesList.SortOrder = Enum.SortOrder.LayoutOrder
+UpdatesList.Padding = UDim.new(0, 10)
+
+local FeaturesList = Instance.new("UIListLayout")
+FeaturesList.Parent = FeaturesFrame
+FeaturesList.SortOrder = Enum.SortOrder.LayoutOrder
+FeaturesList.Padding = UDim.new(0, 10)
+
+local InfoList = Instance.new("UIListLayout")
+InfoList.Parent = InfoFrame
+InfoList.SortOrder = Enum.SortOrder.LayoutOrder
+InfoList.Padding = UDim.new(0, 10)
+
+-- Tab Switching Function
+local function SwitchTab(tabName)
+    currentTab = tabName
+    
+    UpdatesFrame.Visible = false
+    FeaturesFrame.Visible = false
+    InfoFrame.Visible = false
+    
+    for _, child in pairs(Sidebar:GetChildren()) do
+        if child:IsA("TextButton") then
+            if child.Name == tabName then
+                child.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+                child.TextColor3 = Color3.fromRGB(255, 255, 255)
+            else
+                child.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                child.TextColor3 = Color3.fromRGB(200, 200, 200)
+            end
+        end
+    end
+    
+    if tabName == "UpdatesTab" then
+        UpdatesFrame.Visible = true
+    elseif tabName == "FeaturesTab" then
+        FeaturesFrame.Visible = true
+    elseif tabName == "InfoTab" then
+        InfoFrame.Visible = true
+    end
+end
+
+-- Create Tab Buttons
+local UpdatesTab = CreateTabButton("UpdatesTab", "Updates", 1)
+local FeaturesTab = CreateTabButton("FeaturesTab", "Features", 2)
+local InfoTab = CreateTabButton("InfoTab", "Info", 3)
+
+UpdatesTab.MouseButton1Click:Connect(function()
+    SwitchTab("UpdatesTab")
+end)
+
+FeaturesTab.MouseButton1Click:Connect(function()
+    SwitchTab("FeaturesTab")
+end)
+
+InfoTab.MouseButton1Click:Connect(function()
+    SwitchTab("InfoTab")
+end)
+
+-- Create Updates Content
+local function CreateUpdateText(text, order)
+    local Label = Instance.new("TextLabel")
+    Label.Parent = UpdatesFrame
+    Label.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Label.Size = UDim2.new(1, 0, 0, 0)
+    Label.Font = Enum.Font.Gotham
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 14
+    Label.TextWrapped = true
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextYAlignment = Enum.TextYAlignment.Top
+    Label.BorderSizePixel = 0
+    Label.LayoutOrder = order
+    Label.AutomaticSize = Enum.AutomaticSize.Y
+    
+    local Padding = Instance.new("UIPadding")
+    Padding.Parent = Label
+    Padding.PaddingLeft = UDim.new(0, 10)
+    Padding.PaddingRight = UDim.new(0, 10)
+    Padding.PaddingTop = UDim.new(0, 10)
+    Padding.PaddingBottom = UDim.new(0, 10)
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Label
+    
+    return Label
+end
+
+-- Create Info Content
+local function CreateInfoText(text, order, isBold, isLarge)
+    local Label = Instance.new("TextLabel")
+    Label.Parent = InfoFrame
+    Label.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Label.Size = UDim2.new(1, 0, 0, 0)
+    Label.Font = isBold and Enum.Font.GothamBold or Enum.Font.Gotham
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = isLarge and 20 or 14
+    Label.TextTransparency = (not isBold and not isLarge) and 0.3 or 0
+    Label.TextWrapped = true
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextYAlignment = Enum.TextYAlignment.Top
+    Label.BorderSizePixel = 0
+    Label.LayoutOrder = order
+    Label.AutomaticSize = Enum.AutomaticSize.Y
+    
+    local Padding = Instance.new("UIPadding")
+    Padding.Parent = Label
+    Padding.PaddingLeft = UDim.new(0, 10)
+    Padding.PaddingRight = UDim.new(0, 10)
+    Padding.PaddingTop = UDim.new(0, 10)
+    Padding.PaddingBottom = UDim.new(0, 10)
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Label
+    
+    return Label
+end
+
+CreateUpdateText("🆕 LATEST UPDATES (v1.1.6):\n\n• IMPROVED: ESP skeleton now GREEN color\n• NEW: Aimbots system - Choose between Normal and Rage\n• Aimbot Normal - Aims at enemy body (camera + character)\n• Aimbot Rage - Aims at enemy head (camera + character)\n• NEW: Third Person View - Switch camera perspective\n• Press L to toggle Aimbot Rage directly\n• Jump Power increased for higher jumps\n• Better UI design and performance", 1)
+
+CreateInfoText("SCRIPT CREATOR: LELIKS", 1, true, true)
+CreateInfoText("Discord: LeliksW", 2, false, false)
+CreateInfoText("\n📋 GENERAL INFORMATION:\n\n• This script is designed for Roblox Rivals\n• All features work in 1v1 and team matches\n• Keybinds are customizable and save automatically\n• Press Z to toggle GUI visibility\n• Features persist across rounds and respawns\n• Blue border indicates active GUI\n• Settings save to file automatically\n\n⚠️ USE RESPONSIBLY:\n\n• This is a cheat/exploit script\n• May result in game bans\n• Use at your own risk\n• Recommended for private servers or testing\n\n🔥 BEST FEATURES:\n\n• ESP with green skeleton and health bars\n• Aimbots - Normal (body) and Rage (head)\n• Auto Shot with wall detection\n• Third Person View\n• Jump Power for higher jumps\n• Customizable keybinds\n• FOV changer (20-150)", 3, false, false)
+
+-- Variables
+local ESPEnabled = false
+local ESPConnections = {}
+local AimbotsExpanded = false
+local AimbotNormalEnabled = false
+local AimbotRageEnabled = false
+local AimbotConnection = nil
+local AutoShotEnabled = false
+local AutoShotConnection = nil
+local lastShotTime = 0
+local SpeedEnabled = false
+local SpeedConnection = nil
+local InfiniteJumpEnabled = false
+local JumpConnection = nil
+local NoRecoilEnabled = false
+local WallhackEnabled = false
+local FlyEnabled = false
+local FlyConnection = nil
+local FlyBodyVelocity = nil
+local AntiKickEnabled = false
+local NoClipEnabled = false
+local NoClipConnection = nil
+local XRayEnabled = false
+local XRayParts = {}
+local FOVConnection = nil
+local JumpPowerEnabled = false
+local JumpPowerConnection = nil
+local ThirdPersonEnabled = false
+
+-- Team Check Function
+local function IsEnemy(player)
+    if not player or player == LocalPlayer then 
+        return false 
+    end
+    
+    if LocalPlayer.Team and player.Team then
+        return LocalPlayer.Team ~= player.Team
+    end
+    
+    return true
+end
+
+-- Wall Detection Function
+local function IsWallInFront()
+    if not LocalPlayer.Character then return true end
+    local head = LocalPlayer.Character:FindFirstChild("Head")
+    if not head then return true end
+    
+    local camera = workspace.CurrentCamera
+    if not camera then return true end
+    
+    local origin = head.Position
+    local direction = camera.CFrame.LookVector * 10
+    
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    
+    local rayResult = workspace:Raycast(origin, direction, rayParams)
+    
+    if rayResult then
+        local hitPart = rayResult.Instance
+        if hitPart and hitPart:IsA("BasePart") then
+            if rayResult.Distance < 5 then
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
+-- ESP Skeleton Joints
+local skeletonJoints = {
+    {"Head", "UpperTorso"},
+    {"UpperTorso", "LowerTorso"},
+    {"UpperTorso", "LeftUpperArm"},
+    {"LeftUpperArm", "LeftLowerArm"},
+    {"LeftLowerArm", "LeftHand"},
+    {"UpperTorso", "RightUpperArm"},
+    {"RightUpperArm", "RightLowerArm"},
+    {"RightLowerArm", "RightHand"},
+    {"LowerTorso", "LeftUpperLeg"},
+    {"LeftUpperLeg", "LeftLowerLeg"},
+    {"LeftLowerLeg", "LeftFoot"},
+    {"LowerTorso", "RightUpperLeg"},
+    {"RightUpperLeg", "RightLowerLeg"},
+    {"RightLowerLeg", "RightFoot"}
+}
+
+-- ESP WITH GREEN SKELETON AND HEALTH BAR
+local function CreateESPForCharacter(player, character)
+    if player == LocalPlayer then return end
+    if not character then return end
+    
+    local oldHighlight = character:FindFirstChild("ESPHighlight")
+    local oldBillboard = character:FindFirstChild("ESPNameTag")
+    local oldFolder = character:FindFirstChild("ESPSkeleton")
+    if oldHighlight then oldHighlight:Destroy() end
+    if oldBillboard then oldBillboard:Destroy() end
+    if oldFolder then oldFolder:Destroy() end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESPHighlight"
+    highlight.Adornee = character
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    
+    if IsEnemy(player) then
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    else
+        highlight.FillColor = Color3.fromRGB(0, 255, 0)
+    end
+    
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = character
+    
+    -- GREEN Skeleton
+    local skeletonFolder = Instance.new("Folder")
+    skeletonFolder.Name = "ESPSkeleton"
+    skeletonFolder.Parent = character
+    
+    for _, joint in pairs(skeletonJoints) do
+        local part1 = character:FindFirstChild(joint[1])
+        local part2 = character:FindFirstChild(joint[2])
+        
+        if part1 and part2 then
+            local line = Instance.new("Beam")
+            local att0 = Instance.new("Attachment")
+            local att1 = Instance.new("Attachment")
+            
+            att0.Parent = part1
+            att1.Parent = part2
+            
+            line.Attachment0 = att0
+            line.Attachment1 = att1
+            line.Color = ColorSequence.new(Color3.fromRGB(0, 255, 0)) -- GREEN
+            line.Width0 = 0.1
+            line.Width1 = 0.1
+            line.FaceCamera = true
+            line.Parent = skeletonFolder
+        end
+    end
+    
+    -- Name + Health Bar
+    local head = character:FindFirstChild("Head")
+    local humanoid = character:FindFirstChild("Humanoid")
+    if head and humanoid then
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "ESPNameTag"
+        billboard.Adornee = head
+        billboard.Size = UDim2.new(0, 200, 0, 70)
+        billboard.StudsOffset = Vector3.new(0, 3, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = character
+        
+        -- Health Bar Background
+        local healthBG = Instance.new("Frame")
+        healthBG.Parent = billboard
+        healthBG.Size = UDim2.new(0.8, 0, 0, 8)
+        healthBG.Position = UDim2.new(0.1, 0, 0, 0)
+        healthBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        healthBG.BorderSizePixel = 0
+        
+        local healthCorner = Instance.new("UICorner")
+        healthCorner.CornerRadius = UDim.new(0, 4)
+        healthCorner.Parent = healthBG
+        
+        -- Health Bar Fill
+        local healthFill = Instance.new("Frame")
+        healthFill.Name = "HealthFill"
+        healthFill.Parent = healthBG
+        healthFill.Size = UDim2.new(humanoid.Health / humanoid.MaxHealth, 0, 1, 0)
+        healthFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        healthFill.BorderSizePixel = 0
+        
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 4)
+        fillCorner.Parent = healthFill
+        
+        -- Update health bar
+        humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+            healthFill.Size = UDim2.new(math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1), 0, 1, 0)
+        end)
+        
+        -- Name Label
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Parent = billboard
+        nameLabel.Size = UDim2.new(1, 0, 0, 40)
+        nameLabel.Position = UDim2.new(0, 0, 0, 15)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = player.Name
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextSize = 16
+        nameLabel.TextColor3 = IsEnemy(player) and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+        nameLabel.TextStrokeTransparency = 0
+        nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    end
+end
+
+local function SetupESPForPlayer(player)
+    if player == LocalPlayer then return end
+    
+    if player.Character then
+        CreateESPForCharacter(player, player.Character)
+    end
+    
+    player.CharacterAdded:Connect(function(character)
+        if ESPEnabled then
+            task.wait(0.5)
+            CreateESPForCharacter(player, character)
+        end
+    end)
+end
+
+local function RemoveESPFromCharacter(character)
+    if not character then return end
+    
+    local highlight = character:FindFirstChild("ESPHighlight")
+    local billboard = character:FindFirstChild("ESPNameTag")
+    local skeleton = character:FindFirstChild("ESPSkeleton")
+    
+    if highlight then highlight:Destroy() end
+    if billboard then billboard:Destroy() end
+    if skeleton then skeleton:Destroy() end
+end
+
+local function RemoveAllESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character then
+            RemoveESPFromCharacter(player.Character)
+        end
+    end
+end
+
+-- ESP Button (First!)
+CreateFeatureButton(FeaturesFrame, "ESPButton", "ESP [OFF]", function()
+    ESPEnabled = not ESPEnabled
+    local button = FeaturesFrame:FindFirstChild("ESPButton")
+    local mainText = button:FindFirstChild("MainText")
+    
+    if ESPEnabled then
+        mainText.Text = "ESP [ON]"
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            SetupESPForPlayer(player)
+        end
+        
+        ESPConnections.PlayerAdded = Players.PlayerAdded:Connect(function(player)
+            if ESPEnabled then
+                SetupESPForPlayer(player)
+            end
+        end)
+        
+        ESPConnections.PlayerRemoving = Players.PlayerRemoving:Connect(function(player)
+            if player.Character then
+                RemoveESPFromCharacter(player.Character)
+            end
+        end)
+    else
+        mainText.Text = "ESP [OFF]"
+        RemoveAllESP()
+        
+        if ESPConnections.PlayerAdded then
+            ESPConnections.PlayerAdded:Disconnect()
+        end
+        if ESPConnections.PlayerRemoving then
+            ESPConnections.PlayerRemoving:Disconnect()
+        end
+    end
+end, true, nil).LayoutOrder = 1
+
+-- Get Closest Enemy Function
+local function GetClosestEnemy()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and IsEnemy(player) and player.Character then
+            local torso = player.Character:FindFirstChild("Torso") or player.Character:FindFirstChild("UpperTorso")
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            
+            if torso and humanoid and humanoid.Health > 0 then
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (torso.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                    
+                    if distance < shortestDistance and distance < 500 then
+                        closestPlayer = player
+                        shortestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+-- AIMBOTS SYSTEM
+local function EnableAimbot(targetPart)
+    if AimbotConnection then
+        AimbotConnection:Disconnect()
+    end
+    
+    AimbotConnection = RunService.RenderStepped:Connect(function()
+        if not AimbotNormalEnabled and not AimbotRageEnabled then return end
+        
+        if not LocalPlayer.Character then return end
+        local humanoidRootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return end
+        
+        local target = GetClosestEnemy()
+        
+        if target and target.Character then
+            local aimPart
+            if AimbotRageEnabled then
+                aimPart = target.Character:FindFirstChild("Head") -- Rage = Head
+            else
+                aimPart = target.Character:FindFirstChild("Torso") or target.Character:FindFirstChild("UpperTorso") -- Normal = Body
+            end
+            
+            if aimPart then
+                -- Rotate camera
+                local camera = workspace.CurrentCamera
+                if camera then
+                    camera.CFrame = CFrame.new(camera.CFrame.Position, aimPart.Position)
+                end
+                
+                -- Rotate character
+                local lookAtPos = Vector3.new(aimPart.Position.X, humanoidRootPart.Position.Y, aimPart.Position.Z)
+                humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, lookAtPos)
+            end
+        end
+    end)
+end
+
+local function DisableAimbot()
+    if AimbotConnection then
+        AimbotConnection:Disconnect()
+        AimbotConnection = nil
+    end
+end
+
+-- Create Aimbots expandable button
+local AimbotsButton = CreateFeatureButton(FeaturesFrame, "AimbotsButton", "Aimbots", function()
+    AimbotsExpanded = not AimbotsExpanded
+    
+    local normalButton = FeaturesFrame:FindFirstChild("AimbotNormalButton")
+    local rageButton = FeaturesFrame:FindFirstChild("AimbotRageButton")
+    
+    if AimbotsExpanded then
+        if normalButton then normalButton.Visible = true end
+        if rageButton then rageButton.Visible = true end
+    else
+        if normalButton then normalButton.Visible = false end
+        if rageButton then rageButton.Visible = false end
+    end
+end, true, nil)
+AimbotsButton.LayoutOrder = 2
+
+-- Create sub-buttons for Aimbots (FULL WIDTH, NO BORDERS, LEFT ALIGNED)
+local AimbotNormalButton = Instance.new("TextButton")
+
+AimbotNormalButton.Name = "AimbotNormalButton"
+AimbotNormalButton.Parent = FeaturesFrame
+AimbotNormalButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotNormalButton.Size = UDim2.new(1, 0, 0, 45)
+AimbotNormalButton.Font = Enum.Font.GothamBold
+AimbotNormalButton.Text = "  Aimbot Normal [OFF]"
+AimbotNormalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotNormalButton.TextSize = 16
+AimbotNormalButton.TextXAlignment = Enum.TextXAlignment.Left
+AimbotNormalButton.AutoButtonColor = false
+AimbotNormalButton.BorderSizePixel = 0
+AimbotNormalButton.Visible = false
+AimbotNormalButton.LayoutOrder = 3
+
+AimbotNormalButton.MouseButton1Click:Connect(function()
+    AimbotNormalEnabled = not AimbotNormalEnabled
+    AimbotRageEnabled = false
+    
+    AimbotNormalButton.Text = AimbotNormalEnabled and "  Aimbot Normal [ON]" or "  Aimbot Normal [OFF]"
+    
+    local rageBtn = FeaturesFrame:FindFirstChild("AimbotRageButton")
+    if rageBtn then
+        rageBtn.Text = "  Aimbot Rage [OFF]"
+    end
+    
+    if AimbotNormalEnabled then
+        EnableAimbot("Body")
+    else
+        DisableAimbot()
+    end
+end)
+
+local AimbotRageButton = Instance.new("TextButton")
+
+AimbotRageButton.Name = "AimbotRageButton"
+AimbotRageButton.Parent = FeaturesFrame
+AimbotRageButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AimbotRageButton.Size = UDim2.new(1, 0, 0, 45)
+AimbotRageButton.Font = Enum.Font.GothamBold
+AimbotRageButton.Text = "  Aimbot Rage [OFF]"
+AimbotRageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotRageButton.TextSize = 16
+AimbotRageButton.TextXAlignment = Enum.TextXAlignment.Left
+AimbotRageButton.AutoButtonColor = false
+AimbotRageButton.BorderSizePixel = 0
+AimbotRageButton.Visible = false
+AimbotRageButton.LayoutOrder = 4
+
+AimbotRageButton.MouseButton1Click:Connect(function()
+    AimbotRageEnabled = not AimbotRageEnabled
+    AimbotNormalEnabled = false
+    
+    AimbotRageButton.Text = AimbotRageEnabled and "  Aimbot Rage [ON]" or "  Aimbot Rage [OFF]"
+    
+    local normalBtn = FeaturesFrame:FindFirstChild("AimbotNormalButton")
+    if normalBtn then
+        normalBtn.Text = "  Aimbot Normal [OFF]"
+    end
+    
+    if AimbotRageEnabled then
+        EnableAimbot("Head")
+    else
+        DisableAimbot()
+    end
+end)
+
+-- AUTO SHOT WITH WALL DETECTION + KEYBIND
+local function EnableAutoShot()
+    if AutoShotConnection then
+        AutoShotConnection:Disconnect()
+    end
+    
+    lastShotTime = 0
+    
+    AutoShotConnection = RunService.Heartbeat:Connect(function()
+        if not AutoShotEnabled then return end
+        
+        if not AimbotNormalEnabled and not AimbotRageEnabled then return end
+        
+        if IsWallInFront() then return end
+        
+        local currentTime = tick()
+        
+        if currentTime - lastShotTime >= 0.4 then
+            local target = GetClosestEnemy()
+            
+            if target and target.Character then
+                local targetPart = target.Character:FindFirstChild("Head") or target.Character:FindFirstChild("Torso") or target.Character:FindFirstChild("UpperTorso")
+                
+                if targetPart and LocalPlayer.Character then
+                    mouse1press()
+                    task.wait(0.05)
+                    mouse1release()
+                    
+                    lastShotTime = currentTime
+                end
+            end
+        end
+    end)
+end
+
+local function DisableAutoShot()
+    if AutoShotConnection then
+        AutoShotConnection:Disconnect()
+        AutoShotConnection = nil
+    end
+end
+
+-- Auto Shot Button
+CreateFeatureButton(FeaturesFrame, "AutoShotButton", "Auto Shot [OFF]", function()
+    AutoShotEnabled = not AutoShotEnabled
+    local button = FeaturesFrame:FindFirstChild("AutoShotButton")
+    local mainText = button:FindFirstChild("MainText")
+    
+    if AutoShotEnabled then
+        mainText.Text = "Auto Shot [ON]"
+        EnableAutoShot()
+    else
+        mainText.Text = "Auto Shot [OFF]"
+        DisableAutoShot()
+    end
+end, true, "Recommended for 1v1 matches").LayoutOrder = 5
+
+-- JUMP POWER
+local function EnableJumpPower()
+    if JumpPowerConnection then
+        JumpPowerConnection:Disconnect()
+    end
+    
+    JumpPowerConnection = RunService.Heartbeat:Connect(function()
+        if not JumpPowerEnabled then return end
+        
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.JumpPower = 100
+        end
+    end)
+end
+
+local function DisableJumpPower()
+    if JumpPowerConnection then
+        JumpPowerConnection:Disconnect()
+        JumpPowerConnection = nil
+    end
+    
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = 50
+    end
+end
+
+CreateFeatureButton(FeaturesFrame, "JumpPowerButton", "Jump Power [OFF]", function()
+    JumpPowerEnabled = not JumpPowerEnabled
+    local button = FeaturesFrame:FindFirstChild("JumpPowerButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = JumpPowerEnabled and "Jump Power [ON]" or "Jump Power [OFF]"
+    
+    if JumpPowerEnabled then
+        EnableJumpPower()
+    else
+        DisableJumpPower()
+    end
+end, false, nil).LayoutOrder = 6
+
+-- Speed Boost
+local function EnableSpeed()
+    if SpeedConnection then
+        SpeedConnection:Disconnect()
+    end
+    
+    SpeedConnection = RunService.Heartbeat:Connect(function()
+        if not SpeedEnabled then return end
+        
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = 50
+        end
+    end)
+end
+
+local function DisableSpeed()
+    if SpeedConnection then
+        SpeedConnection:Disconnect()
+        SpeedConnection = nil
+    end
+    
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    end
+end
+
+CreateFeatureButton(FeaturesFrame, "SpeedButton", "Speed Boost [OFF]", function()
+    SpeedEnabled = not SpeedEnabled
+    local button = FeaturesFrame:FindFirstChild("SpeedButton")
+    local mainText = button:FindFirstChild("MainText")
+    
+    if SpeedEnabled then
+        mainText.Text = "Speed Boost [ON]"
+        EnableSpeed()
+    else
+        mainText.Text = "Speed Boost [OFF]"
+        DisableSpeed()
+    end
+end, false, nil).LayoutOrder = 7
+
+-- FLY
+local function EnableFly()
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
+    local hrp = LocalPlayer.Character.HumanoidRootPart
+    
+    if FlyBodyVelocity then
+        FlyBodyVelocity:Destroy()
+    end
+    
+    FlyBodyVelocity = Instance.new("BodyVelocity")
+    FlyBodyVelocity.Name = "FlyVelocity"
+    FlyBodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    FlyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    FlyBodyVelocity.Parent = hrp
+    
+    if FlyConnection then
+        FlyConnection:Disconnect()
+    end
+    
+    FlyConnection = RunService.Heartbeat:Connect(function()
+        if not FlyEnabled then return end
+        
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local speed = 2
+            local direction = Vector3.new(0, 0, 0)
+            
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                direction = direction + workspace.CurrentCamera.CFrame.LookVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                direction = direction - workspace.CurrentCamera.CFrame.LookVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                direction = direction - workspace.CurrentCamera.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                direction = direction + workspace.CurrentCamera.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                direction = direction + Vector3.new(0, 1, 0)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                direction = direction - Vector3.new(0, 1, 0)
+            end
+            
+            if FlyBodyVelocity and FlyBodyVelocity.Parent then
+                FlyBodyVelocity.Velocity = direction * speed * 50
+            else
+                EnableFly()
+            end
+        else
+            task.wait(0.5)
+            if FlyEnabled then
+                EnableFly()
+            end
+        end
+    end)
+end
+
+local function DisableFly()
+    if FlyConnection then
+        FlyConnection:Disconnect()
+        FlyConnection = nil
+    end
+    
+    if FlyBodyVelocity then
+        FlyBodyVelocity:Destroy()
+        FlyBodyVelocity = nil
+    end
+    
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local bv = LocalPlayer.Character.HumanoidRootPart:FindFirstChild("FlyVelocity")
+        if bv then
+            bv:Destroy()
+        end
+    end
+end
+
+CreateFeatureButton(FeaturesFrame, "FlyButton", "Fly [OFF]", function()
+    FlyEnabled = not FlyEnabled
+    local button = FeaturesFrame:FindFirstChild("FlyButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = FlyEnabled and "Fly [ON]" or "Fly [OFF]"
+    
+    if FlyEnabled then
+        EnableFly()
+    else
+        DisableFly()
+    end
+end, true, nil).LayoutOrder = 8
+
+-- NoClip
+local function EnableNoClip()
+    if NoClipConnection then
+        NoClipConnection:Disconnect()
+    end
+    
+    NoClipConnection = RunService.Stepped:Connect(function()
+        if not NoClipEnabled then return end
+        
+        if LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+local function DisableNoClip()
+    if NoClipConnection then
+        NoClipConnection:Disconnect()
+        NoClipConnection = nil
+    end
+    
+    if LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+CreateFeatureButton(FeaturesFrame, "NoClipButton", "NoClip [OFF]", function()
+    NoClipEnabled = not NoClipEnabled
+    local button = FeaturesFrame:FindFirstChild("NoClipButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = NoClipEnabled and "NoClip [ON]" or "NoClip [OFF]"
+    
+    if NoClipEnabled then
+        EnableNoClip()
+    else
+        DisableNoClip()
+    end
+end, true, nil).LayoutOrder = 9
+
+-- Infinite Jump
+CreateFeatureButton(FeaturesFrame, "JumpButton", "Infinite Jump [OFF]", function()
+    InfiniteJumpEnabled = not InfiniteJumpEnabled
+    local button = FeaturesFrame:FindFirstChild("JumpButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = InfiniteJumpEnabled and "Infinite Jump [ON]" or "Infinite Jump [OFF]"
+    
+    if InfiniteJumpEnabled then
+        JumpConnection = UserInputService.JumpRequest:Connect(function()
+            if InfiniteJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+                LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+            end
+        end)
+    else
+        if JumpConnection then
+            JumpConnection:Disconnect()
+        end
+    end
+end, false, nil).LayoutOrder = 10
+
+-- XRay
+local function EnableXRay()
+    XRayParts = {}
+    
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Transparency < 1 then
+            if not obj.Parent:FindFirstChild("Humanoid") then
+                table.insert(XRayParts, {
+                    Part = obj,
+                    OriginalTransparency = obj.Transparency
+                })
+                obj.Transparency = 0.7
+            end
+        end
+    end
+end
+
+local function DisableXRay()
+    for _, data in pairs(XRayParts) do
+        if data.Part then
+            data.Part.Transparency = data.OriginalTransparency
+        end
+    end
+    XRayParts = {}
+end
+
+CreateFeatureButton(FeaturesFrame, "XRayButton", "XRay [OFF]", function()
+    XRayEnabled = not XRayEnabled
+    local button = FeaturesFrame:FindFirstChild("XRayButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = XRayEnabled and "XRay [ON]" or "XRay [OFF]"
+    
+    if XRayEnabled then
+        EnableXRay()
+    else
+        DisableXRay()
+    end
+end, false, nil).LayoutOrder = 11
+
+-- No Recoil
+CreateFeatureButton(FeaturesFrame, "RecoilButton", "No Recoil [OFF]", function()
+    NoRecoilEnabled = not NoRecoilEnabled
+    local button = FeaturesFrame:FindFirstChild("RecoilButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = NoRecoilEnabled and "No Recoil [ON]" or "No Recoil [OFF]"
+end, false, nil).LayoutOrder = 12
+
+-- Wallhack
+CreateFeatureButton(FeaturesFrame, "WallhackButton", "Wallhack [OFF]", function()
+    WallhackEnabled = not WallhackEnabled
+    local button = FeaturesFrame:FindFirstChild("WallhackButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = WallhackEnabled and "Wallhack [ON]" or "Wallhack [OFF]"
+    
+    for _, part in pairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and (part.Name == "Wall" or part.Name == "wall") then
+            part.Transparency = WallhackEnabled and 0.7 or 0
+        end
+    end
+end, false, nil).LayoutOrder = 13
+
+-- Instant Respawn
+CreateFeatureButton(FeaturesFrame, "RespawnButton", "Instant Respawn", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.Health = 0
+    end
+end, false, nil).LayoutOrder = 14
+
+-- Teleport to Enemy
+CreateFeatureButton(FeaturesFrame, "TeleportButton", "Teleport to Enemy", function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and IsEnemy(player) and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                break
+            end
+        end
+    end
+end, false, nil).LayoutOrder = 15
+
+-- Anti-Kick
+CreateFeatureButton(FeaturesFrame, "AntiKickButton", "Anti-Kick [OFF]", function()
+    AntiKickEnabled = not AntiKickEnabled
+    local button = FeaturesFrame:FindFirstChild("AntiKickButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = AntiKickEnabled and "Anti-Kick [ON]" or "Anti-Kick [OFF]"
+    
+    if AntiKickEnabled then
+        pcall(function()
+            local mt = getrawmetatable(game)
+            local old = mt.__namecall
+            setreadonly(mt, false)
+            mt.__namecall = newcclosure(function(self, ...)
+                local method = getnamecallmethod()
+                if method == "Kick" then
+                    return
+                end
+                return old(self, ...)
+            end)
+            setreadonly(mt, true)
+        end)
+    end
+end, false, nil).LayoutOrder = 16
+
+-- THIRD PERSON VIEW (FIXED)
+CreateFeatureButton(FeaturesFrame, "ThirdPersonButton", "Third Person View [OFF]", function()
+    ThirdPersonEnabled = not ThirdPersonEnabled
+    local button = FeaturesFrame:FindFirstChild("ThirdPersonButton")
+    local mainText = button:FindFirstChild("MainText")
+    mainText.Text = ThirdPersonEnabled and "Third Person View [ON]" or "Third Person View [OFF]"
+    
+    if ThirdPersonEnabled then
+        -- Enable third person
+        LocalPlayer.CameraMode = Enum.CameraMode.Classic
+        LocalPlayer.CameraMaxZoomDistance = 50
+        LocalPlayer.CameraMinZoomDistance = 10
+    else
+        -- Disable third person (back to first person)
+        LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
+        LocalPlayer.CameraMaxZoomDistance = 0.5
+        LocalPlayer.CameraMinZoomDistance = 0.5
+    end
+end, false, nil).LayoutOrder = 998
+
+-- FOV CHANGER (LAST!)
+local function CreateFOVSlider()
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Name = "FOVSlider"
+    SliderFrame.Parent = FeaturesFrame
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SliderFrame.Size = UDim2.new(1, 0, 0, 60)
+    SliderFrame.BorderSizePixel = 0
+    SliderFrame.LayoutOrder = 999
+    
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 8)
+    SliderCorner.Parent = SliderFrame
+    
+    local SliderStroke = Instance.new("UIStroke")
+    SliderStroke.Color = Color3.fromRGB(70, 130, 255)
+    SliderStroke.Thickness = 2
+    SliderStroke.Parent = SliderFrame
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Parent = SliderFrame
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Position = UDim2.new(0, 10, 0, 5)
+    TitleLabel.Size = UDim2.new(1, -20, 0, 20)
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.Text = "FOV: " .. SavedSettings.FOV
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextSize = 16
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local SliderBar = Instance.new("Frame")
+    SliderBar.Parent = SliderFrame
+    SliderBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    SliderBar.Position = UDim2.new(0, 10, 0, 35)
+    SliderBar.Size = UDim2.new(1, -20, 0, 15)
+    SliderBar.BorderSizePixel = 0
+    
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(0, 7)
+    BarCorner.Parent = SliderBar
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Parent = SliderBar
+    SliderFill.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+    SliderFill.Size = UDim2.new((SavedSettings.FOV - 20) / 130, 0, 1, 0)
+    SliderFill.BorderSizePixel = 0
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(0, 7)
+    FillCorner.Parent = SliderFill
+    
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Parent = SliderBar
+    SliderButton.BackgroundTransparency = 1
+    SliderButton.Size = UDim2.new(1, 0, 1, 0)
+    SliderButton.Text = ""
+    
+    local dragging = false
+    
+    SliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    RunService.RenderStepped:Connect(function()
+        if dragging then
+            local mouse = UserInputService:GetMouseLocation()
+            local relativePos = mouse.X - SliderBar.AbsolutePosition.X
+            local percentage = math.clamp(relativePos / SliderBar.AbsoluteSize.X, 0, 1)
+            
+            local fov = math.floor(20 + (percentage * 130))
+            SavedSettings.FOV = fov
+            
+            TitleLabel.Text = "FOV: " .. fov
+            SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+            
+            workspace.CurrentCamera.FieldOfView = fov
+            SaveSettings()
+        end
+    end)
+    
+    workspace.CurrentCamera.FieldOfView = SavedSettings.FOV
+    
+    if FOVConnection then
+        FOVConnection:Disconnect()
+    end
+    
+    FOVConnection = RunService.Heartbeat:Connect(function()
+        if workspace.CurrentCamera.FieldOfView ~= SavedSettings.FOV then
+            workspace.CurrentCamera.FieldOfView = SavedSettings.FOV
+        end
+    end)
+end
+
+CreateFOVSlider()
+
+-- Update Canvas Sizes
+UpdatesFrame.CanvasSize = UDim2.new(0, 0, 0, UpdatesList.AbsoluteContentSize.Y + 10)
+UpdatesList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    UpdatesFrame.CanvasSize = UDim2.new(0, 0, 0, UpdatesList.AbsoluteContentSize.Y + 10)
+end)
+
+FeaturesFrame.CanvasSize = UDim2.new(0, 0, 0, FeaturesList.AbsoluteContentSize.Y + 10)
+FeaturesList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    FeaturesFrame.CanvasSize = UDim2.new(0, 0, 0, FeaturesList.AbsoluteContentSize.Y + 10)
+end)
+
+InfoFrame.CanvasSize = UDim2.new(0, 0, 0, InfoList.AbsoluteContentSize.Y + 10)
+InfoList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    InfoFrame.CanvasSize = UDim2.new(0, 0, 0, InfoList.AbsoluteContentSize.Y + 10)
+end)
+
+-- Keybinds
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or currentlyBinding then return end
+    
+    if input.KeyCode == Enum.KeyCode.Z then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+    
+    -- L key = Toggle Aimbot Rage directly
+    if input.KeyCode == SavedSettings.Keybinds.Aimbot then
+        AimbotRageEnabled = not AimbotRageEnabled
+        AimbotNormalEnabled = false
+        
+        local rageBtn = FeaturesFrame:FindFirstChild("AimbotRageButton")
+        local normalBtn = FeaturesFrame:FindFirstChild("AimbotNormalButton")
+        
+        if rageBtn then
+            rageBtn.Text = AimbotRageEnabled and "  Aimbot Rage [ON]" or "  Aimbot Rage [OFF]"
+        end
+        if normalBtn then
+            normalBtn.Text = "  Aimbot Normal [OFF]"
+        end
+        
+        if AimbotRageEnabled then
+            EnableAimbot("Head")
+        else
+            DisableAimbot()
+        end
+    end
+    
+    if input.KeyCode == SavedSettings.Keybinds.Fly then
+        FlyEnabled = not FlyEnabled
+        local button = FeaturesFrame:FindFirstChild("FlyButton")
+        local mainText = button:FindFirstChild("MainText")
+        mainText.Text = FlyEnabled and "Fly [ON]" or "Fly [OFF]"
+        
+        if FlyEnabled then
+            EnableFly()
+        else
+            DisableFly()
+        end
+    end
+    
+    if input.KeyCode == SavedSettings.Keybinds.ESP then
+        ESPEnabled = not ESPEnabled
+        local button = FeaturesFrame:FindFirstChild("ESPButton")
+        local mainText = button:FindFirstChild("MainText")
+        
+        if ESPEnabled then
+            mainText.Text = "ESP [ON]"
+            
+            for _, player in pairs(Players:GetPlayers()) do
+                SetupESPForPlayer(player)
+            end
+            
+            ESPConnections.PlayerAdded = Players.PlayerAdded:Connect(function(player)
+                if ESPEnabled then
+                    SetupESPForPlayer(player)
+                end
+            end)
+            
+            ESPConnections.PlayerRemoving = Players.PlayerRemoving:Connect(function(player)
+                if player.Character then
+                    RemoveESPFromCharacter(player.Character)
+                end
+            end)
+        else
+            mainText.Text = "ESP [OFF]"
+            RemoveAllESP()
+            
+            if ESPConnections.PlayerAdded then
+                ESPConnections.PlayerAdded:Disconnect()
+            end
+            if ESPConnections.PlayerRemoving then
+                ESPConnections.PlayerRemoving:Disconnect()
+            end
+        end
+    end
+    
+    if input.KeyCode == SavedSettings.Keybinds.NoClip then
+        NoClipEnabled = not NoClipEnabled
+        local button = FeaturesFrame:FindFirstChild("NoClipButton")
+        local mainText = button:FindFirstChild("MainText")
+        mainText.Text = NoClipEnabled and "NoClip [ON]" or "NoClip [OFF]"
+        
+        if NoClipEnabled then
+            EnableNoClip()
+        else
+            DisableNoClip()
+        end
+    end
+    
+    if input.KeyCode == SavedSettings.Keybinds.AutoShot then
+        AutoShotEnabled = not AutoShotEnabled
+        local button = FeaturesFrame:FindFirstChild("AutoShotButton")
+        local mainText = button:FindFirstChild("MainText")
+        
+        if AutoShotEnabled then
+            mainText.Text = "Auto Shot [ON]"
+            EnableAutoShot()
+        else
+            mainText.Text = "Auto Shot [OFF]"
+            DisableAutoShot()
+        end
+    end
+end)
+
+-- Character Respawn Handler
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    
+    if SpeedEnabled then
+        task.wait(0.5)
+        EnableSpeed()
+    end
+    
+    if JumpPowerEnabled then
+        task.wait(0.5)
+        EnableJumpPower()
+    end
+    
+    if FlyEnabled then
+        task.wait(1)
+        EnableFly()
+    end
+    
+    if AimbotNormalEnabled or AimbotRageEnabled then
+        task.wait(0.5)
+        if AimbotRageEnabled then
+            EnableAimbot("Head")
+        else
+            EnableAimbot("Body")
+        end
+    end
+    
+    if AutoShotEnabled then
+        task.wait(0.5)
+        EnableAutoShot()
+    end
+    
+    if NoClipEnabled then
+        task.wait(0.5)
+        EnableNoClip()
+    end
+    
+    if ESPEnabled then
+        task.wait(0.5)
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character then
+                CreateESPForCharacter(player, player.Character)
+            end
+        end
+    end
+    
+    if ThirdPersonEnabled then
+        LocalPlayer.CameraMode = Enum.CameraMode.Classic
+        LocalPlayer.CameraMaxZoomDistance = 50
+        LocalPlayer.CameraMinZoomDistance = 10
+    end
+    
+    workspace.CurrentCamera.FieldOfView = SavedSettings.FOV
+end)
+
+-- Start with Updates tab
+SwitchTab("UpdatesTab")
