@@ -20,8 +20,8 @@ local SCREAM_IMAGE_ID = "rbxassetid://12723744729"
 local RESTRICTED_PLACE_IDS = {11379739543, 98752102030179}
 
 -- ===== إعدادات JSONBin =====
-local API_KEY = "$2a$10$KFVN6sFJ4vyaAWPx9zXQdOPhJSEP5U93hieiCIRG6STHNoDhw/Ej6"
-local BIN_ID = "6a5963a6da38895dfe686663"
+local API_KEY = "$2a$10$4v9Xm9yEYEBTBQTUUNVPLOCHF7nQ.nJ8fZ09lPmT3Kwui0VHDhy3q"
+local BIN_ID = "6a62cc02da38895dfe87cb92"
 local URL = "https://api.jsonbin.io/v3/b/" .. BIN_ID
 local PREFIX = "!" -- البادئة
 
