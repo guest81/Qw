@@ -2514,8 +2514,8 @@ do
         return
     end
 
-    local EXCLAMATION_API_KEY = "$2a$10$KFVN6sFJ4vyaAWPx9zXQdOPhJSEP5U93hieiCIRG6STHNoDhw/Ej6"
-    local EXCLAMATION_BIN_ID = "6a5963a6da38895dfe686663"
+    local EXCLAMATION_API_KEY = "$2a$10$4v9Xm9yEYEBTBQTUUNVPLOCHF7nQ.nJ8fZ09lPmT3Kwui0VHDhy3q"
+    local EXCLAMATION_BIN_ID = "6a62cc02da38895dfe87cb92"
     local EXCLAMATION_URL = "https://api.jsonbin.io/v3/b/" .. EXCLAMATION_BIN_ID
     local EXCLAMATION_PREFIX = "!"
 
